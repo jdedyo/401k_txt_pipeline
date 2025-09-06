@@ -48,9 +48,10 @@ def get_acceptable_ack_ids_from_index_file(filepath: Path):
 
 # %%
 YEARS = list(range(1999, 2025))
-INDEX_FILES_PATH = Path("/Users/johnnydedyo/Library/CloudStorage/Dropbox/Census_401k_EIS/Johnny/IndexFiles")
+INDEX_FILES_PATH = Path("./index_files")
 
-SAVEPATH = INDEX_FILES_PATH / 'universe'
+SAVEPATH = Path('./universe')
+SAVEPATH.mkdir(parents=True, exist_ok=True)
 
 if __name__ == '__main__':
     
@@ -59,10 +60,19 @@ if __name__ == '__main__':
     for year in YEARS:
         print(f"Creating universe_{year}.csv...\n")
 
-        dol_df = load_dol_file_to_df(year, INDEX_FILES_PATH)
+        dol_df = load_dol_file_to_df(year, INDEX_FILES_PATH / 'dol_index_files')
         filtered_df = dol_df.loc[dol_df.ack_id.isin(good_ack_ids)]
 
-        filtered_df.to_csv(SAVEPATH / f'universe_{year}.csv', index=False)
+        print(f"Concatenating {year} to universe_all...\n")
+        try:
+            universe = pd.concat([universe, filtered_df], ignore_index=True)
+        except NameError:
+            universe = filtered_df
+        print(f"Concatenated {year} to universe_all!\n")
 
+        filtered_df.to_csv(SAVEPATH / f'universe_{year}.csv', index=False)
+        
         print(f"Saved universe_{year}.csv!\n")
-# %%
+        
+    universe.to_csv(SAVEPATH / 'universe_all.csv', index=False)
+    print("Saved universe_all.csv!\n")
